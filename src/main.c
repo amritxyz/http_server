@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <unistd.h>
 
 #include "main.h"
 
@@ -28,6 +29,24 @@ int main(void)
 	if (listen(server, 10) < 0) {
 		perror("listen");
 		exit(1);
+	}
+	
+	printf("listening on: 8080\n");
+	while(1) {
+		int client = accept(server, NULL, NULL);
+		if (client < 0) {
+			perror("accept");
+			exit(1);
+		}
+		printf("client fd: %d\n", client);
+		char *response = 
+			"HTTP/1.0 200 OK\r\n"
+			"Content-Type: text/html\r\n"
+			"\r\n"
+			"<h1>Hello Nyx!</h1>\n";
+
+		write(client, response, strlen(response));
+		close(client);
 	}
 
 	return 0;
