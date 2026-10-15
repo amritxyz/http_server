@@ -22,10 +22,17 @@ int main(void)
 	address.sin_addr.s_addr = INADDR_ANY;
 	address.sin_port = htons(8080);
 
+	int yes = 1;
+	if (setsockopt(server, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
+		perror("setsocket");
+		exit(1);
+	}
+
 	if (bind(server, (struct sockaddr *)&address, sizeof(address))) {
 		perror("bind");
 		exit(1);
 	}
+
 	if (listen(server, 10) < 0) {
 		perror("listen");
 		exit(1);
