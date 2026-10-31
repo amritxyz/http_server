@@ -1,15 +1,16 @@
+#include <fcntl.h>
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <unistd.h>
-
-#include "main.h"
+#include <stdint.h>
 
 int main(void)
 {
-	i32 server = socket(AF_INET, SOCK_STREAM, 0);
+	int32_t server = socket(AF_INET, SOCK_STREAM, 0);
 	if (server < 0) {
 		perror("socket");
 		exit(1);
@@ -22,7 +23,7 @@ int main(void)
 	address.sin_addr.s_addr = INADDR_ANY;
 	address.sin_port = htons(8080);
 
-	int yes = 1;
+	uint8_t yes = 1;
 	if (setsockopt(server, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
 		perror("setsocket");
 		exit(1);
@@ -40,7 +41,7 @@ int main(void)
 	
 	printf("listening on: 8080\n");
 	while(1) {
-		int client = accept(server, NULL, NULL);
+		int32_t client = accept(server, NULL, NULL);
 		if (client < 0) {
 			perror("accept");
 			exit(1);
@@ -66,13 +67,39 @@ int main(void)
 		snprintf(filename, sizeof(filename), "www%s",
 			strcmp(path, "/") == 0 ? "/index.html" : path);
 
-		char *response = 
-			"HTTP/1.0 200 OK\r\n"
-			"Content-Type: text/html\r\n"
-			"\r\n"
-			"<h1>Hello Nyx!</h1>\n";
+		struct stat info;
+		int8_t file = -1;
+		if (stat(filename, &info) < 0 || !S_ISREG(info.st_mode) ||
+				(file == open(filename, O_RDONLY) < 0)) {
 
-		write(client, response, strlen(response));
+			char *response = 
+				"HTTP/1.0 404 not found\r\n"
+				"Content-Type: text/html\r\n"
+				"\r\n"
+				"<h1>404!</h1>\n";
+			write(client, response, strlen(response));
+			close(client);
+			continue;
+		}
+
+		char header[256];
+		int length = snprintf(header, sizeof(header), 
+			"HTTP/1.0 200 OK\r\n"
+			"Content-Type: %s\r\n"
+			"Content-Length: %ld\r\n"
+			"\r\n"
+			"placeholder", (long)info.st_size
+		);
+		write(client, header, length);
+
+		char buffer[4096];
+		ssize_t count;
+
+		while((count = read(file, buffer, sizeof(buffer))) > 0) {
+			write(client, buffer, count);
+		}
+
+		close(file);
 		close(client);
 	}
 
