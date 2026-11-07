@@ -1,0 +1,27 @@
+:root {
+	color-scheme: light dark;
+	--bg: #fff;
+	--fg: #222;
+	--link: #05c;
+	--pre-bg: #f3f3f3;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--bg: #111;
+		--fg: #ddd;
+		--link: #7af;
+		--pre-bg: #1c1c1c;
+	}
+}
+
+a {
+	color: var(--link);
+}
+
+pre {
+	padding: 1rem;
+	color: var(--fg);
+	background: var(--pre-bg);
+	overflow-x: auto;
+}
