@@ -36,7 +36,7 @@ int main(void)
 	/* Lets us restart without waiting for TIME_WAIT */
 	uint32_t yes = 1;
 	if (setsockopt(server, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
-		perror("setsocketopt");
+		perror("setsockopt");
 		exit(1);
 	}
 
@@ -74,26 +74,25 @@ int main(void)
 			continue;
 		}
 		printf("%s %s\n", method, path);
-		// TODO: re-enable, blocks with traversal
-		// if (strstr(path, "..") != NULL) {
-		// 	char *response = 
-		// 		"HTTP/1.0 404 not found\r\n"
-		// 		"Content-Type: text/html\r\n"
-		// 		"\r\n"
-		// 		"<h1>404!</h1>\n";
-		// 	write(client, response, strlen(response));
-		// 	close(client);
-		// 	continue;
-		// }
+		if (strstr(path, "..") != NULL) {
+			char *response =
+				"HTTP/1.0 404 not found\r\n"
+				"Content-Type: text/html\r\n"
+				"\r\n"
+				"<h1>Haha hacker 404!</h1>\n";
+			write(client, response, strlen(response));
+			close(client);
+			continue;
+		}
 
 		char filename[512];
-		snprintf(filename, sizeof(filename), "www%s",
+		snprintf(filename, sizeof(filename), "web%s",
 			strcmp(path, "/") == 0 ? "/index.html" : path);
 
 		struct stat info;
 
 		int32_t file = -1;
-		if (stat(filename, &info) == 0 || S_ISREG(info.st_mode))
+		if (stat(filename, &info) == 0 && S_ISREG(info.st_mode))
 			file = open(filename, O_RDONLY);
 		if (file < 0) {
 			char *response = 
@@ -107,7 +106,7 @@ int main(void)
 		}
 
 		char header[256];
-		int length = snprintf(header, sizeof(header), 
+		int32_t length = snprintf(header, sizeof(header),
 			"HTTP/1.0 200 OK\r\n"
 			"Content-Type: %s\r\n"
 			"Content-Length: %ld\r\n"
