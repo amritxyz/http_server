@@ -8,13 +8,25 @@
 #include <unistd.h>
 #include <stdint.h>
 
-char *content_type(char *filename) {
+char
+*content_type(char *filename)
+{
 	char *dot = strrchr(filename, '.');
-	if (dot == NULL) return "text/plain";
+
+	/* Unknown file type default to application/octet-stream
+	 * Ref: https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/MIME_types/Common_types
+	 */
+	if (dot == NULL) return "application/octet-stream";
+
 	if (strcmp(dot, ".html") == 0) return "text/html";
 	if (strcmp(dot, ".css") == 0) return "text/css";
+	if (strcmp(dot, ".js") == 0) return "text/javascript";
 	if (strcmp(dot, ".jpg") == 0) return "image/jpeg";
 	if (strcmp(dot, ".webp") == 0) return "image/webp";
+	if (strcmp(dot, ".json") == 0) return "application/json";
+	if (strcmp(dot, ".svg") == 0) return "image/svg+xml";
+	if (strcmp(dot, ".pdf") == 0) return "application/pdf";
+
 	return "text/plain";
 }
 
