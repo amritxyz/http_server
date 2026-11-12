@@ -7,6 +7,9 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#define WEB_ASSETS	"web"
+#define DEFAULT_PORT	8080
+
 const char *
 content_type(const char *filename)
 {
@@ -30,8 +33,19 @@ content_type(const char *filename)
 	return "text/plain";
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
+	int port = DEFAULT_PORT;
+
+	if (argc > 1) {
+		port = atoi(argv[1]);
+
+		if (port <= 0 || port > 65535) {
+			fprintf(stderr, "Error: Invalid port number. Must be 1 to 65535\n");
+			exit(1);
+		}
+	}
+
 	int server_fd;
 	struct sockaddr_in server_addr;
 
@@ -45,7 +59,7 @@ int main(void)
 	memset(&server_addr, 0, sizeof(server_addr));
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_addr.s_addr = INADDR_ANY;
-	server_addr.sin_port = htons(8080);
+	server_addr.sin_port = htons(port);
 
 	/* Lets us restart without waiting for TIME_WAIT */
 	int yes = 1;
@@ -65,7 +79,7 @@ int main(void)
 		exit(1);
 	}
 	
-	printf("listening on: 8080\n");
+	printf("serving %s on: 127.0.0.1:%d\n", WEB_ASSETS, port);
 	while(1) {
 		int client = accept(server_fd, NULL, NULL);
 		if (client < 0) {
