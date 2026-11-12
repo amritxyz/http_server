@@ -6,14 +6,14 @@
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <stdint.h>
 
-char
-*content_type(char *filename)
+const char *
+content_type(const char *filename)
 {
-	char *dot = strrchr(filename, '.');
+	const char *dot = strrchr(filename, '.');
 
-	/* Unknown file type default to application/octet-stream
+	/* INFO:
+	 * Unknown file type default to application/octet-stream
 	 * Ref: https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/MIME_types/Common_types
 	 */
 	if (dot == NULL) return "application/octet-stream";
@@ -32,39 +32,42 @@ char
 
 int main(void)
 {
-	int32_t server = socket(AF_INET, SOCK_STREAM, 0);
-	if (server < 0) {
+	int server_fd;
+	struct sockaddr_in server_addr;
+
+	server_fd = socket(AF_INET, SOCK_STREAM, 0);
+	if (server_fd < 0) {
 		perror("socket");
 		exit(1);
 	}
-	printf("socket fd: %d\n", server);
+	printf("socket fd: %d\n", server_fd);
 
-	struct sockaddr_in address;
-	memset(&address, 0, sizeof(address));
-	address.sin_family = AF_INET;
-	address.sin_addr.s_addr = INADDR_ANY;
-	address.sin_port = htons(8080);
+	memset(&server_addr, 0, sizeof(server_addr));
+	server_addr.sin_family = AF_INET;
+	server_addr.sin_addr.s_addr = INADDR_ANY;
+	server_addr.sin_port = htons(8080);
 
 	/* Lets us restart without waiting for TIME_WAIT */
-	uint32_t yes = 1;
-	if (setsockopt(server, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
+	int yes = 1;
+	if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
 		perror("setsockopt");
 		exit(1);
 	}
 
-	if (bind(server, (struct sockaddr *)&address, sizeof(address))) {
+	if (bind(server_fd, (struct sockaddr *)&server_addr,
+	    sizeof(server_addr)) < 0) {
 		perror("bind");
 		exit(1);
 	}
 
-	if (listen(server, 10) < 0) {
+	if (listen(server_fd, 10) < 0) {
 		perror("listen");
 		exit(1);
 	}
 	
 	printf("listening on: 8080\n");
 	while(1) {
-		int32_t client = accept(server, NULL, NULL);
+		int client = accept(server_fd, NULL, NULL);
 		if (client < 0) {
 			perror("accept");
 			exit(1);
@@ -103,7 +106,7 @@ int main(void)
 
 		struct stat info;
 
-		int32_t file = -1;
+		int file = -1;
 		if (stat(filename, &info) == 0 && S_ISREG(info.st_mode))
 			file = open(filename, O_RDONLY);
 		if (file < 0) {
@@ -118,20 +121,20 @@ int main(void)
 		}
 
 		char header[256];
-		int32_t length = snprintf(header, sizeof(header),
+		int length = snprintf(header, sizeof(header),
 			"HTTP/1.0 200 OK\r\n"
 			"Content-Type: %s\r\n"
 			"Content-Length: %ld\r\n"
 			"\r\n",
 			content_type(filename), (long)info.st_size
 		);
-		write(client, header, length);
+		write(client, header, (size_t)length);
 
 		char buffer[4096];
 		ssize_t count;
 
 		while((count = read(file, buffer, sizeof(buffer))) > 0) {
-			write(client, buffer, count);
+			write(client, buffer, (size_t)count);
 		}
 
 		close(file);
