@@ -2,10 +2,10 @@ CC      = cc
 CFLAGS  = -Wall -Wextra -Werror -std=c99 -Isrc
 # LDFLAGS = -lm
 
-SRC     = src/main.c
-OBJ     = build/main.o
+SRC     = src/main.c src/server.c
+OBJ     = build/main.o build/server.o
 OUT     = bin/main
-# HEADERS = src/main.h
+HEADERS = src/server.h
 
 all: dirs $(OUT)
 

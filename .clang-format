@@ -1,0 +1,60 @@
+BasedOnStyle: LLVM
+Language: C
+
+# Indentation: 8-column tabs, 4-column continuations
+UseTab: ForIndentation
+IndentWidth: 8
+TabWidth: 8
+ContinuationIndentWidth: 4
+
+# Function return type on its own line
+BreakAfterReturnType: All
+IndentWrappedFunctionNames: false
+
+# Braces
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterFunction: true
+  AfterControlStatement: Never
+  AfterStruct: true
+  AfterUnion: true
+  AfterEnum: true
+  BeforeElse: false
+  BeforeCatch: false
+  SplitEmptyFunction: false
+  SplitEmptyRecord: false
+  SplitEmptyNamespace: false
+
+# Pointers
+PointerAlignment: Right
+DerivePointerAlignment: false
+
+# Control statements
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Never
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+IndentCaseLabels: false
+
+# Function arguments
+BinPackArguments: true
+BinPackParameters: true
+AlignAfterOpenBracket: Align
+
+# Whitespace
+SpaceBeforeParens: ControlStatements
+SpaceAfterCStyleCast: false
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+
+# Line length
+ColumnLimit: 80
+ReflowComments: false
+MaxEmptyLinesToKeep: 1
+
+# Includes
+SortIncludes: Never
+
+# Comments
+AlignTrailingComments: false
